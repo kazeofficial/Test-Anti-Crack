@@ -908,6 +908,108 @@ local masterUiButtons = {
 }
 
 -- =========================================================
+-- KAZE CONFIG + DEBUG MODE
+-- =========================================================
+
+local CONFIG_DEBUG = true
+
+local configFilePath = activity.getLuaDir() .. "/Kaze_config.txt"
+local debugFilePath  = activity.getLuaDir() .. "/config_debug.txt"
+
+
+-- =========================================================
+-- DEBUG LOGGER
+-- =========================================================
+
+local function configDebug(message)
+
+  if not CONFIG_DEBUG then
+    return
+  end
+
+  local msg = tostring(message)
+
+  print("[KAZE CONFIG] " .. msg)
+
+  local f = io.open(debugFilePath, "a")
+
+  if f then
+    f:write(
+      os.date("%Y-%m-%d %H:%M:%S"),
+      " | ",
+      msg,
+      "\n"
+    )
+    f:close()
+  end
+end
+
+
+local function configDebugToast(message)
+
+  if CONFIG_DEBUG then
+    showCyberpunkToast("[DEBUG] " .. tostring(message))
+  end
+
+end
+
+
+local function clearConfigDebug()
+
+  if not CONFIG_DEBUG then
+    return
+  end
+
+  local f = io.open(debugFilePath, "w")
+
+  if f then
+    f:write("========== KAZE CONFIG DEBUG ==========\n")
+    f:write("START: " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n")
+    f:close()
+  end
+
+end
+
+
+-- =========================================================
+-- BUTTON EVENTS
+-- =========================================================
+
+function saveconfig.onClick()
+
+  configDebug("SAVE BUTTON CLICKED")
+
+  local result = saveConfig()
+
+  configDebug("saveConfig() returned: " .. tostring(result))
+
+end
+
+
+function loadconfig.onClick()
+
+  clearConfigDebug()
+
+  configDebug("LOAD BUTTON CLICKED")
+
+  local result = loadConfig()
+
+  configDebug("loadConfig() returned: " .. tostring(result))
+
+end
+
+
+function resetconfig.onClick()
+
+  configDebug("RESET BUTTON CLICKED")
+
+  local result = resetConfig()
+
+  configDebug("resetConfig() returned: " .. tostring(result))
+
+end
+
+-- =========================================================
 -- CONFIG SWITCHES
 -- =========================================================
 
