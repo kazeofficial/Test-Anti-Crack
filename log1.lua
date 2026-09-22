@@ -908,67 +908,10 @@ local masterUiButtons = {
 }
 
 -- =========================================================
--- KAZE CONFIG + DEBUG MODE
+-- KAZE CONFIG
 -- =========================================================
-
-local CONFIG_DEBUG = true
 
 local configFilePath = activity.getLuaDir() .. "/Kaze_config.txt"
-local debugFilePath  = activity.getLuaDir() .. "/config_debug.txt"
-
-
--- =========================================================
--- DEBUG LOGGER
--- =========================================================
-
-local function configDebug(message)
-
-  if not CONFIG_DEBUG then
-    return
-  end
-
-  local msg = tostring(message)
-
-  print("[KAZE CONFIG] " .. msg)
-
-  local f = io.open(debugFilePath, "a")
-
-  if f then
-    f:write(
-      os.date("%Y-%m-%d %H:%M:%S"),
-      " | ",
-      msg,
-      "\n"
-    )
-    f:close()
-  end
-end
-
-
-local function configDebugToast(message)
-
-  if CONFIG_DEBUG then
-    showCyberpunkToast("[DEBUG] " .. tostring(message))
-  end
-
-end
-
-
-local function clearConfigDebug()
-
-  if not CONFIG_DEBUG then
-    return
-  end
-
-  local f = io.open(debugFilePath, "w")
-
-  if f then
-    f:write("========== KAZE CONFIG DEBUG ==========\n")
-    f:write("START: " .. os.date("%Y-%m-%d %H:%M:%S") .. "\n")
-    f:close()
-  end
-
-end
 
 
 -- =========================================================
@@ -976,38 +919,19 @@ end
 -- =========================================================
 
 function saveconfig.onClick()
-
-  configDebug("SAVE BUTTON CLICKED")
-
-  local result = saveConfig()
-
-  configDebug("saveConfig() returned: " .. tostring(result))
-
+  saveConfig()
 end
 
 
 function loadconfig.onClick()
-
-  clearConfigDebug()
-
-  configDebug("LOAD BUTTON CLICKED")
-
-  local result = loadConfig()
-
-  configDebug("loadConfig() returned: " .. tostring(result))
-
+  loadConfig()
 end
 
 
 function resetconfig.onClick()
-
-  configDebug("RESET BUTTON CLICKED")
-
-  local result = resetConfig()
-
-  configDebug("resetConfig() returned: " .. tostring(result))
-
+  resetConfig()
 end
+
 
 -- =========================================================
 -- CONFIG SWITCHES
@@ -1087,9 +1011,7 @@ local configSeekbars = {
 -- =========================================================
 
 local function trim(s)
-
   return tostring(s):match("^%s*(.-)%s*$")
-
 end
 
 
@@ -1139,49 +1061,31 @@ end
 local function getCheckboxState(view)
 
   if view == nil then
-
-    configDebug("getCheckboxState: VIEW = NIL")
-
     return nil
   end
 
 
   -- Primary method
   local ok, result = pcall(function()
-
     return view.isChecked()
-
   end)
 
 
   if ok and type(result) == "boolean" then
-
     return result
-
   end
 
 
-  -- Fallback for AndLua property
+  -- Fallback
   local ok2, result2 = pcall(function()
-
     return view.checked
-
   end)
 
 
   if ok2 and type(result2) == "boolean" then
-
     return result2
-
   end
 
-
-  configDebug(
-    "Cannot read checkbox state. result=" ..
-    tostring(result) ..
-    " fallback=" ..
-    tostring(result2)
-  )
 
   return nil
 
@@ -1194,21 +1098,18 @@ end
 
 function saveConfig()
 
-  configDebug("--------------------------------")
-  configDebug("saveConfig() START")
-  configDebug("Config path: " .. tostring(configFilePath))
-
-
-  local file, err = io.open(configFilePath, "w")
+  local file, err = io.open(
+    configFilePath,
+    "w"
+  )
 
 
   if not file then
 
-    configDebug("FILE OPEN FAILED")
-    configDebug("ERROR: " .. tostring(err))
-
-    showCyberpunkToast(
-      "SAVE FAILED: " .. tostring(err)
+    showCustomToast(
+      "SAVE FAILED!",
+      0xFF141A24,
+      0xFFFF5252
     )
 
     return false
@@ -1216,43 +1117,16 @@ function saveConfig()
   end
 
 
-  configDebug("FILE OPENED SUCCESSFULLY")
-
-
   -- =======================================================
   -- SAVE CHECKBOXES
   -- =======================================================
 
-  local switchSaved = 0
-
-
   for _, id in ipairs(configSwitches) do
-
-    configDebug(
-      "SAVE CHECK: " ..
-      tostring(id)
-    )
-
 
     local view = rawget(_G, id)
 
 
-    if view == nil then
-
-      configDebug(
-        "VIEW NOT FOUND: " ..
-        tostring(id)
-      )
-
-    else
-
-      configDebug(
-        "VIEW FOUND: " ..
-        tostring(id) ..
-        " type=" ..
-        tostring(type(view))
-      )
-
+    if view ~= nil then
 
       local state = getCheckboxState(view)
 
@@ -1266,23 +1140,6 @@ function saveConfig()
           "\n"
         )
 
-        switchSaved = switchSaved + 1
-
-
-        configDebug(
-          "SAVED: " ..
-          id ..
-          "=" ..
-          tostring(state)
-        )
-
-      else
-
-        configDebug(
-          "STATE READ FAILED: " ..
-          tostring(id)
-        )
-
       end
 
     end
@@ -1294,33 +1151,15 @@ function saveConfig()
   -- SAVE SEEKBARS
   -- =======================================================
 
-  local seekbarSaved = 0
-
-
   for _, id in ipairs(configSeekbars) do
-
-    configDebug(
-      "SAVE SEEKBAR: " ..
-      tostring(id)
-    )
-
 
     local view = rawget(_G, id)
 
 
-    if view == nil then
-
-      configDebug(
-        "SEEKBAR NOT FOUND: " ..
-        tostring(id)
-      )
-
-    else
+    if view ~= nil then
 
       local ok, progress = pcall(function()
-
         return view.getProgress()
-
       end)
 
 
@@ -1328,32 +1167,11 @@ function saveConfig()
 
         progress = tonumber(progress) or 0
 
-
         file:write(
           id,
           "=",
           tostring(progress),
           "\n"
-        )
-
-
-        seekbarSaved = seekbarSaved + 1
-
-
-        configDebug(
-          "SAVED: " ..
-          id ..
-          "=" ..
-          tostring(progress)
-        )
-
-      else
-
-        configDebug(
-          "PROGRESS READ FAILED: " ..
-          tostring(id) ..
-          " error=" ..
-          tostring(progress)
         )
 
       end
@@ -1367,27 +1185,10 @@ function saveConfig()
   file:close()
 
 
-  configDebug(
-    "SAVE COMPLETE"
-  )
-
-  configDebug(
-    "Switches saved: " ..
-    tostring(switchSaved)
-  )
-
-  configDebug(
-    "Seekbars saved: " ..
-    tostring(seekbarSaved)
-  )
-
-
-  showCyberpunkToast(
-    "CONFIG SAVED: " ..
-    tostring(switchSaved) ..
-    " switches / " ..
-    tostring(seekbarSaved) ..
-    " seekbars"
+  showCustomToast(
+    "CONFIG SAVED!",
+    0xFF141A24,
+    0xFFFF5252
   )
 
 
@@ -1402,12 +1203,7 @@ end
 
 function loadConfig()
 
-  configDebug("--------------------------------")
-  configDebug("loadConfig() START")
-  configDebug("Config path: " .. tostring(configFilePath))
-
-
-  local file, err = io.open(
+  local file = io.open(
     configFilePath,
     "r"
   )
@@ -1415,13 +1211,10 @@ function loadConfig()
 
   if not file then
 
-    configDebug(
-      "FILE OPEN FAILED: " ..
-      tostring(err)
-    )
-
-    showCyberpunkToast(
-      "CONFIG FILE NOT FOUND"
+    showCustomToast(
+      "CONFIG FILE NOT FOUND!",
+      0xFF141A24,
+      0xFFFF5252
     )
 
     return false
@@ -1429,32 +1222,14 @@ function loadConfig()
   end
 
 
-  configDebug(
-    "FILE OPENED SUCCESSFULLY"
-  )
-
-
   local config = {}
-
-  local linesRead = 0
 
 
   -- =======================================================
-  -- READ FILE
+  -- READ CONFIG FILE
   -- =======================================================
 
   for line in file:lines() do
-
-    linesRead = linesRead + 1
-
-
-    configDebug(
-      "RAW LINE " ..
-      tostring(linesRead) ..
-      ": " ..
-      tostring(line)
-    )
-
 
     local key, value =
       line:match(
@@ -1467,26 +1242,7 @@ function loadConfig()
       key = trim(key)
       value = trim(value)
 
-
       config[key] = parseValue(value)
-
-
-      configDebug(
-        "PARSED: " ..
-        tostring(key) ..
-        " = " ..
-        tostring(config[key]) ..
-        " (" ..
-        tostring(type(config[key])) ..
-        ")"
-      )
-
-    else
-
-      configDebug(
-        "INVALID CONFIG LINE: " ..
-        tostring(line)
-      )
 
     end
 
@@ -1496,22 +1252,9 @@ function loadConfig()
   file:close()
 
 
-  configDebug(
-    "FILE CLOSED"
-  )
-
-  configDebug(
-    "TOTAL LINES: " ..
-    tostring(linesRead)
-  )
-
-
   -- =======================================================
   -- LOAD CHECKBOXES
   -- =======================================================
-
-  local switchesLoaded = 0
-
 
   for _, id in ipairs(configSwitches) do
 
@@ -1519,75 +1262,13 @@ function loadConfig()
     local value = config[id]
 
 
-    configDebug(
-      "LOAD CHECK: " ..
-      id ..
-      " value=" ..
-      tostring(value) ..
-      " type=" ..
-      tostring(type(value)) ..
-      " view=" ..
-      tostring(view)
-    )
+    if view ~= nil and type(value) == "boolean" then
 
-
-    if view == nil then
-
-      configDebug(
-        "!!! VIEW NOT FOUND: " ..
-        tostring(id)
-      )
-
-
-    elseif value == nil then
-
-      configDebug(
-        "!!! CONFIG KEY NOT FOUND: " ..
-        tostring(id)
-      )
-
-
-    elseif type(value) ~= "boolean" then
-
-      configDebug(
-        "!!! INVALID BOOLEAN VALUE: " ..
-        tostring(id) ..
-        " = " ..
-        tostring(value)
-      )
-
-
-    else
-
-      local ok, loadError = pcall(function()
+      pcall(function()
 
         view.setChecked(value)
 
       end)
-
-
-      if ok then
-
-        switchesLoaded = switchesLoaded + 1
-
-
-        configDebug(
-          "LOADED OK: " ..
-          id ..
-          " = " ..
-          tostring(value)
-        )
-
-      else
-
-        configDebug(
-          "!!! setChecked FAILED: " ..
-          id ..
-          " ERROR=" ..
-          tostring(loadError)
-        )
-
-      end
 
     end
 
@@ -1598,54 +1279,15 @@ function loadConfig()
   -- LOAD SEEKBARS
   -- =======================================================
 
-  local seekbarsLoaded = 0
-
-
   for _, id in ipairs(configSeekbars) do
 
     local view = rawget(_G, id)
     local value = config[id]
 
 
-    configDebug(
-      "LOAD SEEKBAR: " ..
-      id ..
-      " value=" ..
-      tostring(value) ..
-      " view=" ..
-      tostring(view)
-    )
+    if view ~= nil and type(value) == "number" then
 
-
-    if view == nil then
-
-      configDebug(
-        "!!! SEEKBAR NOT FOUND: " ..
-        tostring(id)
-      )
-
-
-    elseif value == nil then
-
-      configDebug(
-        "!!! SEEKBAR CONFIG KEY NOT FOUND: " ..
-        tostring(id)
-      )
-
-
-    elseif type(value) ~= "number" then
-
-      configDebug(
-        "!!! INVALID NUMBER: " ..
-        tostring(id) ..
-        " = " ..
-        tostring(value)
-      )
-
-
-    else
-
-      local ok, loadError = pcall(function()
+      pcall(function()
 
         view.setProgress(
           math.floor(value)
@@ -1653,60 +1295,15 @@ function loadConfig()
 
       end)
 
-
-      if ok then
-
-        seekbarsLoaded = seekbarsLoaded + 1
-
-
-        configDebug(
-          "LOADED OK: " ..
-          id ..
-          " = " ..
-          tostring(value)
-        )
-
-      else
-
-        configDebug(
-          "!!! setProgress FAILED: " ..
-          id ..
-          " ERROR=" ..
-          tostring(loadError)
-        )
-
-      end
-
     end
 
   end
 
 
-  -- =======================================================
-  -- FINISH
-  -- =======================================================
-
-  configDebug(
-    "LOAD COMPLETE"
-  )
-
-  configDebug(
-    "Switches loaded: " ..
-    tostring(switchesLoaded)
-  )
-
-  configDebug(
-    "Seekbars loaded: " ..
-    tostring(seekbarsLoaded)
-  )
-
-
-  showCyberpunkToast(
-    "CONFIG LOADED: " ..
-    tostring(switchesLoaded) ..
-    " switches / " ..
-    tostring(seekbarsLoaded) ..
-    " seekbars"
+  showCustomToast(
+    "CONFIG LOADED!",
+    0xFF141A24,
+    0xFFFF5252
   )
 
 
@@ -1721,119 +1318,55 @@ end
 
 function resetConfig()
 
-  configDebug("--------------------------------")
-  configDebug("resetConfig() START")
 
-
-  local switchesReset = 0
-
+  -- =======================================================
+  -- RESET CHECKBOXES
+  -- =======================================================
 
   for _, id in ipairs(configSwitches) do
 
     local view = rawget(_G, id)
 
 
-    if view then
+    if view ~= nil then
 
-      local ok, err = pcall(function()
+      pcall(function()
 
         view.setChecked(false)
 
       end)
-
-
-      if ok then
-
-        switchesReset = switchesReset + 1
-
-        configDebug(
-          "RESET: " ..
-          id
-        )
-
-      else
-
-        configDebug(
-          "RESET FAILED: " ..
-          id ..
-          " ERROR=" ..
-          tostring(err)
-        )
-
-      end
-
-    else
-
-      configDebug(
-        "RESET VIEW NOT FOUND: " ..
-        id
-      )
 
     end
 
   end
 
 
-  local seekbarsReset = 0
-
+  -- =======================================================
+  -- RESET SEEKBARS
+  -- =======================================================
 
   for _, id in ipairs(configSeekbars) do
 
     local view = rawget(_G, id)
 
 
-    if view then
+    if view ~= nil then
 
-      local ok, err = pcall(function()
+      pcall(function()
 
         view.setProgress(0)
 
       end)
-
-
-      if ok then
-
-        seekbarsReset = seekbarsReset + 1
-
-        configDebug(
-          "RESET SEEKBAR: " ..
-          id
-        )
-
-      else
-
-        configDebug(
-          "RESET SEEKBAR FAILED: " ..
-          id ..
-          " ERROR=" ..
-          tostring(err)
-        )
-
-      end
-
-    else
-
-      configDebug(
-        "RESET SEEKBAR NOT FOUND: " ..
-        id
-      )
 
     end
 
   end
 
 
-  configDebug(
-    "RESET COMPLETE"
-  )
-
-
-  showCyberpunkToast(
-    "RESET: " ..
-    tostring(switchesReset) ..
-    " switches / " ..
-    tostring(seekbarsReset) ..
-    " seekbars"
+  showCustomToast(
+    "CONFIG RESET!",
+    0xFF141A24,
+    0xFFFF5252
   )
 
 
