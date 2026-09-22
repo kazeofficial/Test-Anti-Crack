@@ -496,9 +496,6 @@ function antiC4droid()
   end
 end
 
-function saveconfig.onClick() saveConfig() end
-function loadconfig.onClick() loadConfig() end
-function resetconfig.onClick() resetConfig() end
 
 -- Auto Bypass Function
 
@@ -578,6 +575,7 @@ function wall.OnCheckedChangeListener()
 end
 
 
+
 redhack.ButtonDrawable.setColorFilter(PorterDuffColorFilter(0xFF00FFEE, PorterDuff.Mode.SRC_ATOP))
 function redhack.OnCheckedChangeListener()
   if redhack.checked then
@@ -605,44 +603,6 @@ function br.OnCheckedChangeListener()
     HexPatches.MemoryPatch("libunity.so", 0x5985F8C, "h00 00 80 D2 C0 03 5F D6", 32); -- brtags2
   end
 end
-
-local configFilePath = activity.getLuaDir() .. "/verdant_config.txt"
-function saveConfig()
-  local config = ""
-  for _, id in ipairs(ids) do
-    local sw = _G[id]
-    if sw then config = config .. id .. "=" .. tostring(sw.isChecked()) .. "\n" end
-  end
-  if aimbot_seekbar then config = config .. "aimbot=" .. aimbot_seekbar.getProgress() .. "\n" end
-  if dive_seekbar then config = config .. "dive=" .. dive_seekbar.getProgress() .. "\n" end
-  local file = io.open(configFilePath, "w")
-  if file then file:write(config); file:close(); showCyberpunkToast("Saved!") end
-end
-
-function loadConfig()
-  local file = io.open(configFilePath, "r")
-  if not file then idkcstmToast("No config!"); return end
-  for line in file:lines() do
-    local key, val = line:match("([^=]+)=(.+)")
-    if key and val then
-      if _G[key] and (val == "true" or val == "false") then
-        _G[key].setChecked(val == "true")
-       elseif key == "aimbot" and aimbot_seekbar then aimbot_seekbar.setProgress(tonumber(val) or 0)
-       elseif key == "dive" and dive_seekbar then dive_seekbar.setProgress(tonumber(val) or 0)
-      end
-    end
-  end
-  file:close()
-  idkcstmToast("Loaded!")
-end
-
-function resetConfig()
-  for _, id in ipairs(ids) do if _G[id] then _G[id].setChecked(false) end end
-  if aimbot_seekbar then aimbot_seekbar.setProgress(0) end
-  if dive_seekbar then dive_seekbar.setProgress(0) end
-  idkcstmToast("Reset!")
-end
-
 
 nos.ButtonDrawable.setColorFilter(PorterDuffColorFilter(0xFF00FFEE, PorterDuff.Mode.SRC_ATOP))
 function nos.OnCheckedChangeListener()
@@ -912,8 +872,7 @@ blueprint.ButtonDrawable.setColorFilter(PorterDuffColorFilter(0xFF00FFEE, Porter
 function blueprint.OnCheckedChangeListener()
   if blueprint.checked then
     antiC4droid()
-    HexPatches.MemoryPatch("libunity.so", 0x901F988, "20 00 80 D2 C0 03 5F D6"); -- IsUnlocked
-    HexPatches.MemoryPatch("libunity.so", 0x9012214, "20 00 80 D2 C0 03 5F D6"); -- IsUnlocked
+    HexPatches.MemoryPatch("libunity.so", 0X79B2828, "h20 00 80 D2 C0 03 5F D6");
     idkcstmToast("UNLOCK BLUE PRINT")
   end
 end
@@ -991,30 +950,22 @@ function autoBypass()
   isBypassExecuted = true -- I-lock na agad
 
   pcall(function()
-      HexPatches.MemoryPatch("libanogs.so", 0x202680, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x204218, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x35140C, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x37B5A8, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x3893D8, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x39AE94, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x44A714, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x44BC90, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x455A80, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x48CF20, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x497244, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x501210, "h00 00 80 D2 C0 03 5F D6", 32);
-
-      -- Memory Patches for libanogs.so
-      HexPatches.MemoryPatch("libanogs.so", 0x216A60, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x2AD42C, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x31B3DC, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x3FD94C, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x490264, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x4BF364, "h00 00 80 D2 C0 03 5F D6", 32);
-      HexPatches.MemoryPatch("libanogs.so", 0x4D130C, "h00 00 80 D2 C0 03 5F D6", 32);
-    end)
+    HexPatches.MemoryPatch("libanogs.so", 0x204218, "h00 00 80 D2 C0 03 5F D6", 32)
+    HexPatches.MemoryPatch("libanogs.so", 0x258B6C, "h00 00 80 D2 C0 03 5F D6", 32)
+    HexPatches.MemoryPatch("libanogs.so", 0x259670, "h00 00 80 D2 C0 03 5F D6", 32)
+    HexPatches.MemoryPatch("libanogs.so", 0x3055A0, "h00 00 80 D2 C0 03 5F D6", 32)
+    HexPatches.MemoryPatch("libanogs.so", 0x3075C4, "h00 00 80 D2 C0 03 5F D6", 32)
+    HexPatches.MemoryPatch("libanogs.so", 0x307764, "h00 00 80 D2 C0 03 5F D6", 32)
+    HexPatches.MemoryPatch("libanogs.so", 0x30E234, "h00 00 80 D2 C0 03 5F D6", 32)
+    HexPatches.MemoryPatch("libanogs.so", 0x40F360, "h00 00 80 D2 C0 03 5F D6", 32)
+    HexPatches.MemoryPatch("libanogs.so", 0x4102B4, "h00 00 80 D2 C0 03 5F D6", 32)
+    HexPatches.MemoryPatch("libanogs.so", 0x44BC90, "h00 00 80 D2 C0 03 5F D6", 32)
+    HexPatches.MemoryPatch("libanogs.so", 0x497E64, "h00 00 80 D2 C0 03 5F D6", 32)
+    HexPatches.MemoryPatch("libanogs.so", 0x1FF3A4, "h00 00 80 D2 C0 03 5F D6", 32)
+  end)
+  
   -- Isang beses na lang lalabas ang Toast na ito
-  showToast("BYPASS ACTIVATED (10 YRS)")
+  showToast("BYPASS ACTIVATED (TEST SERVER) 1")
 end
 
 -- I-load ang bypass nang hindi binibigla ang main thread sa pagsisimula
@@ -1045,7 +996,7 @@ import "android.widget.TextView"
 import "android.widget.Button"
 import "android.view.Gravity"
 
-local pastebinRaw = "https://pastehub-dwp9.onrender.com/raw/QaPO7hqx"
+local pastebinRaw = "https://pastehub-dwp9.onrender.com/raw/3hx6sfWe"
 
 -- INAYOS: Ginawang asynchronous ang pag-check ng status para hindi mag-hang/crash ang app
 function getPasteStatus(callback)
